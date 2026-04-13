@@ -1,6 +1,5 @@
 import { createContext, useContext, useReducer } from "react";
 import { CartReducer } from "../reducer/CartReducer";
-import { type } from "@testing-library/user-event/dist/type";
 
 const initialState = {
   cartList: [],
@@ -14,6 +13,7 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     const updatedCartList = state.cartList.concat(product);
+    updateTotal(updatedCartList);
     dispatch({
       type: "ADD_TO_CART",
       payload: {
@@ -23,13 +23,32 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = (product) => {
-    const updatedCartList = state.cartList.filter(
-      (current) => current.id !== product.id,
+    const productIndex = state.cartList.findIndex(
+      (current) => current.id === product.id,
     );
+    const updatedCartList = state.cartList.filter(
+      (_, index) => index !== productIndex,
+    );
+
+    updateTotal(updatedCartList);
     dispatch({
       type: "REMOVE_FROM_CART",
       payload: {
-        product: updatedCartList,
+        products: updatedCartList,
+      },
+    });
+  };
+
+  const updateTotal = (products) => {
+    const total = products.reduce(
+      (sum, product) => sum + Number(product.price),
+      0,
+    );
+
+    dispatch({
+      type: "UPDATE_TOTAL",
+      payload: {
+        total,
       },
     });
   };
